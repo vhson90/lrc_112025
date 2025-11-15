@@ -78,7 +78,7 @@
                 <li>**NL**: Người lớn (từ 11 tuổi trở lên)</li>
                 <li>**TE**: Trẻ em (6-10 tuổi)</li>
                 <li>**DK**: Trẻ em đi kèm (1-5 tuổi)</li>
-                <li>**VeDoan / TuTuc / KetHop**: Hình thức đăng ký.</li>
+                <li>**VeDoan / TuTuc**: Loại vé đã đăng ký.</li>
             </ul>
         </div>
     </div>
@@ -102,16 +102,10 @@
         function cleanVietnameseString(str) {
             if (!str) return '';
             
-            // 1. Chuyển tiếng Việt có dấu thành không dấu, và viết HOA
             str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-            
-            // 2. Thay thế các ký tự không phải chữ cái (A-Z), số (0-9), và dấu cách bằng khoảng trắng
             str = str.replace(/[^A-Z0-9\s]/g, ' ');
-
-            // 3. Chuẩn hóa khoảng trắng: thay thế nhiều khoảng trắng thành 1 khoảng trắng duy nhất
             str = str.replace(/\s+/g, ' ');
             
-            // 4. Loại bỏ khoảng trắng ở đầu/cuối
             return str.trim();
         }
 
@@ -172,7 +166,6 @@
 
             const totalAmount = document.getElementById('total-amount').dataset.amount;
             const nameInput = document.getElementById('name').value.trim();
-            const mode = document.getElementById('transport_mode').value;
             const tickets = JSON.parse(document.getElementById('total-amount').dataset.tickets || '{}');
             
             const qrContainer = document.getElementById('qr-container');
@@ -186,33 +179,28 @@
                 return;
             }
 
-            // 1. Chuẩn hóa Tên người chuyển (Sử dụng khoảng trắng)
+            // 1. Chuẩn hóa Tên người chuyển
             const cleanName = cleanVietnameseString(nameInput);
 
-            // 2. Xác định nhãn Phương tiện
-            let modeLabel = '';
-            if (mode === 'group_only') modeLabel = 'VeDoan';
-            else if (mode === 'self_only') modeLabel = 'TuTuc';
-            else if (mode === 'combined') modeLabel = 'KetHop';
-
-            let descriptionParts = [cleanName, modeLabel];
+            // Bỏ qua nhãn Hình thức di chuyển chung (VeDoan/TuTuc/KetHop) theo yêu cầu.
+            let descriptionParts = [cleanName]; 
             
-            // 3. Thêm chi tiết vé (Vé Đoàn)
+            // 2. Thêm chi tiết vé (Vé Đoàn)
             if (tickets.group && (tickets.group.adults > 0 || tickets.group.c610 > 0 || tickets.group.c15 > 0)) {
                 let groupDetails = ['VeDoan'];
                 if (tickets.group.adults > 0) groupDetails.push(`${tickets.group.adults}NL`);
                 if (tickets.group.c610 > 0) groupDetails.push(`${tickets.group.c610}TE`);
-                if (tickets.group.c15 > 0) groupDetails.push(`${tickets.group.c15}DK`); // Dùng DK
+                if (tickets.group.c15 > 0) groupDetails.push(`${tickets.group.c15}DK`); 
                 
                 descriptionParts.push(groupDetails.join(' ')); // Chi tiết vé đoàn phân cách bằng ' '
             }
             
-            // 4. Thêm chi tiết vé (Vé Tự Túc)
+            // 3. Thêm chi tiết vé (Vé Tự Túc)
             if (tickets.self && (tickets.self.adults > 0 || tickets.self.c610 > 0 || tickets.self.c15 > 0)) {
                 let selfDetails = ['TuTuc'];
                 if (tickets.self.adults > 0) selfDetails.push(`${tickets.self.adults}NL`);
                 if (tickets.self.c610 > 0) selfDetails.push(`${tickets.self.c610}TE`);
-                if (tickets.self.c15 > 0) selfDetails.push(`${tickets.self.c15}DK`); // Dùng DK
+                if (tickets.self.c15 > 0) selfDetails.push(`${tickets.self.c15}DK`); 
                 
                 descriptionParts.push(selfDetails.join(' ')); // Chi tiết vé tự túc phân cách bằng ' '
             }
@@ -240,7 +228,7 @@
                     <li>**NL**: Người lớn (từ 11 tuổi trở lên)</li>
                     <li>**TE**: Trẻ em (6-10 tuổi)</li>
                     <li>**DK**: Trẻ em đi kèm (1-5 tuổi)</li>
-                    <li>**VeDoan / TuTuc / KetHop**: Hình thức đăng ký.</li>
+                    <li>**VeDoan / TuTuc**: Loại vé đã đăng ký.</li>
                 </ul>
             `;
         }
