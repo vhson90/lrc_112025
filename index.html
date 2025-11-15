@@ -5,16 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh Toán Vé LRC - QR Code</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .ticket-form { background: #f9f9f9; padding: 20px; border-radius: 8px; }
-        .ticket-group { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 6px; }
-        label, select, input, button { display: block; margin-bottom: 10px; width: 100%; box-sizing: border-box; }
-        input[type="text"], input[type="number"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { background-color: #007bff; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 20px; }
-        button:hover { background-color: #0056b3; }
-        #qr-container { text-align: center; margin-top: 30px; border: 1px solid #eee; padding: 20px; border-radius: 8px; }
-        #total-amount { font-size: 1.5em; font-weight: bold; color: #28a745; margin-bottom: 15px; }
-        .note { font-size: 0.9em; color: #555; margin-top: 15px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 10px;
+        }
+        h3 { 
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 1em; 
+            font-weight: bold;
+        }
+        .ticket-form { 
+            background: #f9f9f9; 
+            padding: 15px;
+            border-radius: 8px; 
+        }
+        .ticket-group { 
+            border: 1px solid #ddd; 
+            padding: 10px;
+            margin-bottom: 20px; 
+            border-radius: 6px; 
+        }
+        label, select, input, button { 
+            display: block; 
+            margin-bottom: 15px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+        input[type="text"], input[type="number"], select { 
+            padding: 10px; 
+            font-size: 16px;
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+        }
+        button { 
+            background-color: #007bff; 
+            color: white; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 18px; 
+            margin-top: 20px; 
+        }
+        button:hover { 
+            background-color: #0056b3; 
+        }
+        #qr-container { 
+            text-align: center; 
+            margin-top: 30px; 
+            border: 1px solid #eee; 
+            padding: 20px; 
+            border-radius: 8px; 
+        }
+        #qr-container img {
+            max-width: 90%;
+            height: auto;
+            width: 300px; 
+        }
+        #total-amount { 
+            font-size: 1.5em; 
+            font-weight: bold; 
+            color: #28a745; 
+            margin-bottom: 15px; 
+        }
+        #explanation {
+            font-size: 0.95em;
+            text-align: center;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+            margin-top: 15px;
+        }
         .error { color: red; margin-bottom: 10px; }
     </style>
 </head>
@@ -31,9 +94,9 @@
         
         <label for="transport_mode">Hình thức Đăng ký:</label>
         <select id="transport_mode">
-            <option value="group_only">VE DOAN (Chỉ đi theo Đoàn)</option>
-            <option value="self_only">TU TUC (Chỉ đi tự Túc)</option>
-            <option value="combined">KET HOP (Cả Đoàn và Tự túc)</option>
+            <option value="group_only">Chỉ đi theo đoàn</option>
+            <option value="self_only">Chỉ đi tự túc</option>
+            <option value="combined">Kết hợp theo đoàn và tự túc</option>
         </select>
 
         <div id="group-form" class="ticket-group">
@@ -63,24 +126,10 @@
         <div id="total-amount">Tổng tiền: 0 VND</div>
         
         <button onclick="generateQrCode()">Hiện Mã QR Thanh Toán</button>
-
-        <div class="note">
-            * Giá vé đã được quy đổi sang VND (Ví dụ: 1.700k = 1,700,000 VND).
-        </div>
     </div>
 
     <div id="qr-container">
         <p>Vui lòng chọn thông tin vé và nhấn nút để tạo mã QR.</p>
-
-        <div id="explanation">
-            <h3>Giải thích các ký hiệu viết tắt trong Nội dung chuyển khoản:</h3>
-            <ul>
-                <li>**NL**: Người lớn (từ 11 tuổi trở lên)</li>
-                <li>**TE**: Trẻ em (6-10 tuổi)</li>
-                <li>**DK**: Trẻ em đi kèm (1-5 tuổi)</li>
-                <li>**VeDoan / TuTuc**: Loại vé đã đăng ký.</li>
-            </ul>
-        </div>
     </div>
 
     <script>
@@ -104,9 +153,8 @@
             
             str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
             str = str.replace(/[^A-Z0-9\s]/g, ' ');
-            str = str.replace(/\s+/g, ' ');
             
-            return str.trim();
+            return str.replace(/\s+/g, ' ').trim();
         }
 
         // --- Hàm hiển thị form tùy theo hình thức đăng ký ---
@@ -124,7 +172,6 @@
             let total = 0;
             let tickets = {};
 
-            // Tính toán Vé Theo Đoàn
             if (mode === 'group_only' || mode === 'combined') {
                 const ga = parseInt(document.getElementById('group_adults').value) || 0;
                 const gc610 = parseInt(document.getElementById('group_children_6_10').value) || 0;
@@ -139,7 +186,6 @@
                 tickets.group = { adults: ga, c610: gc610, c15: gc15 };
             }
 
-            // Tính toán Vé Tự Túc
             if (mode === 'self_only' || mode === 'combined') {
                 const sa = parseInt(document.getElementById('self_adults').value) || 0;
                 const sc610 = parseInt(document.getElementById('self_children_6_10').value) || 0;
@@ -181,9 +227,7 @@
 
             // 1. Chuẩn hóa Tên người chuyển
             const cleanName = cleanVietnameseString(nameInput);
-
-            // Bỏ qua nhãn Hình thức di chuyển chung (VeDoan/TuTuc/KetHop) theo yêu cầu.
-            let descriptionParts = [cleanName]; 
+            let descriptionParts = [cleanName];
             
             // 2. Thêm chi tiết vé (Vé Đoàn)
             if (tickets.group && (tickets.group.adults > 0 || tickets.group.c610 > 0 || tickets.group.c15 > 0)) {
@@ -192,7 +236,7 @@
                 if (tickets.group.c610 > 0) groupDetails.push(`${tickets.group.c610}TE`);
                 if (tickets.group.c15 > 0) groupDetails.push(`${tickets.group.c15}DK`); 
                 
-                descriptionParts.push(groupDetails.join(' ')); // Chi tiết vé đoàn phân cách bằng ' '
+                descriptionParts.push(groupDetails.join(' '));
             }
             
             // 3. Thêm chi tiết vé (Vé Tự Túc)
@@ -202,7 +246,7 @@
                 if (tickets.self.c610 > 0) selfDetails.push(`${tickets.self.c610}TE`);
                 if (tickets.self.c15 > 0) selfDetails.push(`${tickets.self.c15}DK`); 
                 
-                descriptionParts.push(selfDetails.join(' ')); // Chi tiết vé tự túc phân cách bằng ' '
+                descriptionParts.push(selfDetails.join(' '));
             }
 
             // Nội dung chuyển tiền hiển thị (Sử dụng DẤU CÁCH giữa tất cả các nội dung)
@@ -215,6 +259,9 @@
             // URL tạo mã QR
             const qrUrl = `https://qr.sepay.vn/img?bank=VietinBank&acc=NHILE88&template=compact&amount=${totalAmount}&des=${encodedDescription}`;
 
+            // Tạo nội dung giải thích viết tắt 1 dòng
+            const explanationContent = 'NL: Người lớn | TE: Trẻ em (6-10 tuổi) | DK: Trẻ em đi kèm (1-5 tuổi) | VeDoan/TuTuc: Loại vé đã đăng ký.';
+
             // Hiển thị mã QR và thông tin
             qrContainer.innerHTML = `
                 <h2>Mã QR Thanh Toán</h2>
@@ -223,13 +270,9 @@
                 <img src="${qrUrl}" alt="Mã QR Thanh Toán" style="width: 300px; height: 300px;">
                 <p class="note">Vui lòng kiểm tra kỹ Tổng tiền và Nội dung trên ứng dụng ngân hàng.</p>
                 
-                <h3>Giải thích các ký hiệu viết tắt trong Nội dung chuyển khoản:</h3>
-                <ul>
-                    <li>**NL**: Người lớn (từ 11 tuổi trở lên)</li>
-                    <li>**TE**: Trẻ em (6-10 tuổi)</li>
-                    <li>**DK**: Trẻ em đi kèm (1-5 tuổi)</li>
-                    <li>**VeDoan / TuTuc**: Loại vé đã đăng ký.</li>
-                </ul>
+                <div id="explanation">
+                    ${explanationContent}
+                </div>
             `;
         }
 
